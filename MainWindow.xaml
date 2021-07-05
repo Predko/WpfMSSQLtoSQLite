@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfMSSQLtoSQLite"
         mc:Ignorable="d"
-        Title="MainWindow" Height="506" Width="800" Loaded="Window_Loaded">
+        Title="MainWindow" Height="500" Width="auto" Loaded="Window_Loaded">
     <Grid>
         <DockPanel LastChildFill="True">
             <StackPanel DockPanel.Dock="Top">
@@ -14,10 +14,10 @@
                 <TextBlock Text="Имя базы данных SQLite" Margin="10 5 10 5"/>
                 <TextBox x:Name="TbxConnectionStringSQLite" Margin="10 0 10 10">Customers</TextBox>
                 <StackPanel Orientation="Horizontal">
-                    <Button x:Name="BtnLoadDb" Click="Btn_ClickDoImport" 
+                    <Button x:Name="BtnLoadDb" Click="Btn_ClickDatabaseInfo" 
                             IsDefault="True" 
                             IsEnabled="False" 
-                            Margin="10 5 10 5" Padding="10 5 10 5">Импортировать базу данных из MSSQL</Button>
+                            Margin="10 5 10 5" Padding="10 5 10 5">Получить информацию из базы данных MSSQL</Button>
                     <Button x:Name="BtnCreateScript" Click="Btn_ClickCreateTableScript" 
                             IsEnabled="False" 
                             Margin="10 5 10 5" Padding="10 5 10 5">Создать скрипт таблицы SQlite</Button>

@@ -29,7 +29,6 @@ namespace WpfMSSQLtoSQLite
         private List<ConstraintInfo> constraintInfo;
 
         private List<string> sqlTableName;
-        private List<string> sdliteTableName;
 
         private string connectionStringMSSql = @"Data Source=.\SQLEXPRESS;Initial Catalog={0};Integrated Security=True";
 
@@ -40,7 +39,7 @@ namespace WpfMSSQLtoSQLite
             InitializeComponent();
         }
 
-        private void Btn_ClickDoImport(object sender, RoutedEventArgs e)
+        private void Btn_ClickDatabaseInfo(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TbxConnectionStringMSSQL.Text))
             {
@@ -57,13 +56,23 @@ namespace WpfMSSQLtoSQLite
             ImportDB(TbxConnectionStringMSSQL.Text, TbxConnectionStringSQLite.Text);
         }
 
+
         private void ImportDB(string MSSqlDbName, string MSQLiteDbName)
         {
-            using SqlConnection MSSQLconnection = new(string.Format(connectionStringMSSql, MSSqlDbName));
-            
-            MSSQLconnection.Open();
+            DataTable columnsTable;
+            DataTable allIndexColumnsSchemaTable;
 
-            DataTable columnsTable = MSSQLconnection.GetSchema("Columns");
+            using (SqlConnection MSSQLconnection = new(string.Format(connectionStringMSSql, MSSqlDbName)))
+            {
+
+                MSSQLconnection.Open();
+
+                columnsTable = MSSQLconnection.GetSchema("Columns");
+
+                allIndexColumnsSchemaTable = MSSQLconnection.GetSchema("IndexColumns");
+
+                MSSQLconnection.Close();
+            }
 
             selectedRows = (from info in columnsTable.AsEnumerable()
                             select new ColumnInfo(
@@ -78,8 +87,6 @@ namespace WpfMSSQLtoSQLite
                                      info["NUMERIC_SCALE"]
                             )).ToList();
 
-            DataTable allIndexColumnsSchemaTable = MSSQLconnection.GetSchema("IndexColumns");
-
             constraintInfo = (from constraint in allIndexColumnsSchemaTable.AsEnumerable()
                               select new ConstraintInfo(
                                 constraint["table_name"],
@@ -88,9 +95,15 @@ namespace WpfMSSQLtoSQLite
                                 constraint["KeyType"]
                               )).ToList();
 
+            // sqlTableName = (from info in constraintInfo select info.TableName).ToList();
+
+            sqlTableName = constraintInfo.Select(info => info.TableName).ToList();
+
             TbxScript.Text = "Data loading completed!";
 
             BtnCreateScript.IsEnabled = true;
+
+            BtnCopyTable.IsEnabled = true;
         }
 
         private int beginIndex = 0;
@@ -141,8 +154,6 @@ namespace WpfMSSQLtoSQLite
             BtnCreateTable.Content = $"Создать таблицу {currentTable}";
 
             BtnCreateScript.Content = $"Создать скрипт для таблицы {nextTable}";
-
-
 
             return;
 
@@ -211,9 +222,7 @@ namespace WpfMSSQLtoSQLite
                 return;
             }
 
-            TbxScript.Text += "\n\nТаблица успешно создана!";
-
-            BtnCopyTable.IsEnabled = true;
+            TbxScript.Text += "\nThe table was created successfully!\n";
         }
 
         private void TbxDbName_LostFocus(object sender, RoutedEventArgs e)
@@ -255,11 +264,127 @@ namespace WpfMSSQLtoSQLite
         {
             DataSet dataSet = new();
 
-            using SqlConnection MSSQLconnection = new(string.Format(connectionStringMSSql, TbxConnectionStringMSSQL.Text));
+            // Loading data from the database.
+            try
+            {
+                using SqlConnection MSSQLconnection = new(string.Format(connectionStringMSSql, TbxConnectionStringMSSQL.Text));
 
-            MSSQLconnection.Open();
+                MSSQLconnection.Open();
 
-            SqlDataAdapter sqlDataAdapter = new()
+                foreach (string name in sqlTableName)
+                {
+
+                    SqlDataAdapter sqlDataAdapter = new($"SELECT * FROM {name};", MSSQLconnection);
+
+                    DataTable dt = new DataTable(name);
+
+                    sqlDataAdapter.Fill(dt);
+
+                    dataSet.Tables.Add(dt);
+                }
+
+                MSSQLconnection.Close();
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show(ex.Message);
+
+                return;
+            }
+
+            try
+            {
+                using SqliteConnection sqliteConnection = new(string.Format(connectionStringMSQLite, TbxConnectionStringSQLite.Text));
+
+                SqliteCommand sqliteCommand = new();
+
+                sqliteCommand.Connection = sqliteConnection;
+
+                TbxScript.Text = "";
+
+                sqliteConnection.Open();
+
+                using (SqliteTransaction transaction = sqliteConnection.BeginTransaction())
+                {
+                    StringBuilder columns = new();
+                    StringBuilder values = new();
+
+                    sqliteCommand.Transaction = transaction;
+
+                    foreach (DataTable dt in dataSet.Tables)
+                    {
+                        DateTime beginTime = DateTime.Now;
+
+                        TbxScript.Text += $"\nStarting filling the database table {dt.TableName}";
+
+                        columns.Clear();
+
+                        string[] sa = new string[dt.Columns.Count];
+
+                        for (int i = 0; i != dt.Columns.Count; i++)
+                        {
+                            sa[i] = dt.Columns[i].ColumnName;
+                        }
+
+                        columns.AppendJoin(',', sa);
+
+                        foreach (DataRow row in dt.Rows)
+                        {
+                            for (int i = 0; i != dt.Columns.Count; i++)
+                            {
+                                sa[i] = $"'{GetDataSqliteType(row[i])}'";
+                            }
+
+                            values.Clear();
+
+                            values.AppendJoin(',', sa);
+
+                            sqliteCommand.CommandText = $"INSERT INTO {dt.TableName}({columns}) VALUES({values})";
+
+                            sqliteCommand.ExecuteNonQuery();
+                        }
+
+                        TimeSpan timeSpan = DateTime.Now - beginTime;
+
+                        TbxScript.Text += $"\nAdded {dt.Rows.Count} records. Time = {timeSpan.TotalMilliseconds} ms\n";
+                    }
+
+                    transaction.Commit();
+                }
+
+                sqliteConnection.Close();
+
+                BtnCopyTable.IsEnabled = false;
+
+            }
+            catch (SqliteException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            
+            return;
+
+            string GetDataSqliteType(object data)
+            {
+                Type type = data.GetType();
+
+                if (type == typeof(DateTime))
+                {
+                    return ((DateTime)data).ToString("yyyy-MM-dd");
+                }
+
+                if (type == typeof(bool))
+                {
+                    return ((bool)data) ? "1" : "0";
+                }
+
+                if (type == typeof(decimal))
+                {
+                    return ((decimal)data).ToString("0.00#"); //##########################
+                }
+
+                return data.ToString();
+            }
         }
 
     }
