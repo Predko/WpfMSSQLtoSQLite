@@ -5,25 +5,37 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfMSSQLtoSQLite"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="506" Width="800" Loaded="Window_Loaded">
     <Grid>
         <DockPanel LastChildFill="True">
-        <StackPanel DockPanel.Dock="Top">
-            <TextBlock Text="Имя базы данных MS SQL" Margin="10 10 10 5"/>
+            <StackPanel DockPanel.Dock="Top">
+                <TextBlock Text="Имя базы данных MS SQL" Margin="10 10 10 5"/>
                 <TextBox x:Name="TbxConnectionStringMSSQL" Margin="10 0 10 10">Customers</TextBox>
                 <TextBlock Text="Имя базы данных SQLite" Margin="10 5 10 5"/>
                 <TextBox x:Name="TbxConnectionStringSQLite" Margin="10 0 10 10">Customers</TextBox>
                 <StackPanel Orientation="Horizontal">
-                    <Button Click="Btn_ClickDoImport" IsDefault="True" Margin="10 5 10 5" Padding="10 5 10 5">Импортировать базу данных из MSSQL</Button>
-                    <Button Click="Btn_ClickCreateTableScript" Margin="10 5 10 5" Padding="10 5 10 5">Создать скрипт таблицы SQlite</Button>
-                    <Button Click="Btn_ClickCreateTable" Margin="10 5 10 5" Padding="10 5 10 5">Создать таблицу SQlite</Button>
-                    <Button IsCancel="True" Margin="10 5 10 5" Padding="10 5 10 5">Отмена</Button>
+                    <Button x:Name="BtnLoadDb" Click="Btn_ClickDoImport" 
+                            IsDefault="True" 
+                            IsEnabled="False" 
+                            Margin="10 5 10 5" Padding="10 5 10 5">Импортировать базу данных из MSSQL</Button>
+                    <Button x:Name="BtnCreateScript" Click="Btn_ClickCreateTableScript" 
+                            IsEnabled="False" 
+                            Margin="10 5 10 5" Padding="10 5 10 5">Создать скрипт таблицы SQlite</Button>
+                    <Button x:Name="BtnCreateTable" Click="Btn_ClickCreateTable" 
+                            IsEnabled="False" 
+                            Margin="10 5 10 5" Padding="10 5 10 5">Создать таблицу SQlite</Button>
+                    <Button x:Name="BtnCopyTable" Click="Btn_ClickCopyTable" 
+                            IsEnabled="False" 
+                            Margin="10 5 10 5" Padding="10 5 10 5">Копировать данные</Button>
+                </StackPanel>
             </StackPanel>
-        </StackPanel>
-            <TextBox x:Name="TbxNamesTables" DockPanel.Dock="Bottom" Margin="10" 
+            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" DockPanel.Dock="Bottom">
+                <Button Margin="10 5 10 5" Padding="10 5 10 5" 
+                        Click="BtnExitProgram">Выход</Button>
+            </StackPanel>
+            <TextBox x:Name="TbxScript" DockPanel.Dock="Bottom" Margin="10"
                      HorizontalScrollBarVisibility="Auto"
                      VerticalScrollBarVisibility="Auto"></TextBox>
-
         </DockPanel>
     </Grid>
 </Window>
