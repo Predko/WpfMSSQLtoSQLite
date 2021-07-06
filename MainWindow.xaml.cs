@@ -58,7 +58,16 @@ namespace WpfMSSQLtoSQLite
 
         private void Btn_ClickCopyTable(object sender, RoutedEventArgs e)
         {
-            CopyData();
+            if ((bool)ChbxIsLoremIpsum.IsChecked)
+            {
+                ChangeData cd = new ChangeData();
+                
+                CopyData(cd.GetNewData);
+            }
+            else
+            {
+                CopyData((cn, d) => d);
+            }
         }
 
         private void TbxDbName_LostFocus(object sender, RoutedEventArgs e)

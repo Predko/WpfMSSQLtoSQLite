@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Data.SqlClient;
+using System.IO;
 
 namespace WpfMSSQLtoSQLite
 {
@@ -34,7 +35,7 @@ namespace WpfMSSQLtoSQLite
 
         private readonly string connectionStringMSQLite = @"Data Source=d:\MyProgram\Web\Html\Birdwatching\assets\Data\{0}.sqlite";
 
-        
+
         /// <summary>
         /// Loading schema from MS SQL database.
         /// </summary>
@@ -58,17 +59,17 @@ namespace WpfMSSQLtoSQLite
             }
 
             columnsInfo = (from info in columnsTable.AsEnumerable()
-                            select new ColumnInfo(
-                                     info["TABLE_CATALOG"],
-                                     info["TABLE_NAME"],
-                                     info["COLUMN_NAME"],
-                                     info["DATA_TYPE"],
-                                     info["CHARACTER_MAXIMUM_LENGTH"],
-                                     info["COLUMN_DEFAULT"],
-                                     info["IS_NULLABLE"],
-                                     info["NUMERIC_PRECISION"],
-                                     info["NUMERIC_SCALE"]
-                            )).ToList();
+                           select new ColumnInfo(
+                                    info["TABLE_CATALOG"],
+                                    info["TABLE_NAME"],
+                                    info["COLUMN_NAME"],
+                                    info["DATA_TYPE"],
+                                    info["CHARACTER_MAXIMUM_LENGTH"],
+                                    info["COLUMN_DEFAULT"],
+                                    info["IS_NULLABLE"],
+                                    info["NUMERIC_PRECISION"],
+                                    info["NUMERIC_SCALE"]
+                           )).ToList();
 
             constraintInfo = (from constraint in allIndexColumnsSchemaTable.AsEnumerable()
                               select new ConstraintInfo(
@@ -235,10 +236,168 @@ namespace WpfMSSQLtoSQLite
             TbxScript.Text += "\nThe table was created successfully!\n";
         }
 
+
+        private class ChangeData
+        {
+            private readonly Dictionary<string, List<string>> Values = new();
+
+            private readonly string loremIpsumString;
+
+            private readonly List<string> loremIpsumWords;
+
+            private readonly List<string> cities;
+
+            public ChangeData()
+            {
+                using (StreamReader sr = new StreamReader("loremIpsum.txt"))
+                {
+                    loremIpsumString = sr.ReadToEnd();
+                }
+
+                loremIpsumWords = loremIpsumString.Split(new[] { ' ', ',', '.', '\n', '\r' }).Where(s => s.Length > 2).Select(s => s.Trim()).ToList();
+
+                cities = loremIpsumWords.Where(s => s.Length > 5).Select(s => s).ToList();
+            }
+
+            public string GetNewData(string columnName, string data)
+            {
+                Random rnd = new();
+                string res;
+
+                if (Values.ContainsKey(columnName) == false)
+                {
+                    Values.Add(columnName, new List<string>());
+                }
+
+                switch (columnName)
+                {
+                    case "NameCompany":
+
+                        string[] sa = new string[rnd.Next(2, 5)];
+
+                        while (true)
+                        {
+                            for (int i = 0; i != sa.Length; i++)
+                            {
+                                sa[i] = loremIpsumWords[rnd.Next(loremIpsumWords.Count - 1)];
+                            }
+
+                            res = string.Join(' ', sa);
+
+                            res = res[..1].ToUpper() + res[1..].ToLower();
+
+                            if (Values[columnName].Contains(res) == false)
+                            {
+                                Values[columnName].Add(res);
+
+                                break;
+                            }
+                        }
+
+                        return res;
+
+                    case "UNP":
+
+                        while (true)
+                        {
+
+                            res = rnd.Next(999999999).ToString("000000000");
+
+                            if (Values[columnName].Contains(res) == false)
+                            {
+                                Values[columnName].Add(res);
+
+                                break;
+                            }
+                        }
+
+                        return res;
+
+                    case "city":
+
+                        res = cities[rnd.Next(cities.Count - 1)];
+
+                        res = res[..1].ToUpper() + res[1..].ToLower();
+
+                        return res;
+
+                    case "region":
+
+                        return "";
+
+                    case "account":
+                    case "account1":
+
+                        while (true)
+                        {
+
+                            int n = rnd.Next(999999999);
+
+                            res = $"BY{rnd.Next(99):00}{rnd.Next(999):000}{(char)rnd.Next((int)'A', (int)'Z')}" +
+                                $"{(char)rnd.Next((int)'A', (int)'Z')}{(char)rnd.Next((int)'A', (int)'Z')}{n:000000000}0";
+
+                            if (Values[columnName].Contains(res) == false)
+                            {
+                                Values[columnName].Add(res);
+
+                                break;
+                            }
+                        }
+
+                        return res;
+
+                    case "phoneNumber":
+                    case "fax":
+
+                        while (true)
+                        {
+
+                            int n = rnd.Next(1000000, 9999999);
+
+                            res = $"+{rnd.Next(999):###}-{rnd.Next(10, 99):(##)}-{n:###-##-##}";
+
+                            if (Values[columnName].Contains(res) == false)
+                            {
+                                Values[columnName].Add(res);
+
+                                break;
+                            }
+                        }
+
+                        return res;
+
+                    case "mail":
+
+                        while (true)
+                        {
+                            res = $"{loremIpsumWords[rnd.Next(loremIpsumWords.Count - 1)]}@{loremIpsumWords[rnd.Next(loremIpsumWords.Count - 1)]}." +
+                                  $"{loremIpsumWords.Where(s => s.Length <= 3).First()}";
+
+                            if (Values[columnName].Contains(res) == false)
+                            {
+                                Values[columnName].Add(res);
+
+                                break;
+                            }
+                        }
+
+                        return res;
+
+                    case "Id":
+
+                        return data.ToString();
+
+                    default:
+
+                        return data;
+                }
+            }
+        }
+
         /// <summary>
         /// Copying data from MS SQL to Sqlite database.
         /// </summary>
-        private void CopyData()
+        private void CopyData(Func<string, string, string> changeData)
         {
             DataSet dataSet = new();
 
@@ -313,7 +472,7 @@ namespace WpfMSSQLtoSQLite
                             // Set values
                             for (int i = 0; i != dt.Columns.Count; i++)
                             {
-                                sa[i] = $"'{GetDataSqliteType(row[i])}'";
+                                sa[i] = $"'{changeData(dt.Columns[i].ColumnName, GetDataSqliteType(row[i]))}'";
                             }
 
                             values.Clear();
@@ -342,7 +501,7 @@ namespace WpfMSSQLtoSQLite
             {
                 MessageBox.Show(ex.Message);
             }
-            
+
             return;
 
             // Function for formatting values of some types.
