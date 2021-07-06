@@ -15,14 +15,6 @@
             KeyType = (byte)(ColumnInfo.ConvertFromDBValToObject(keyType) ?? 0);
         }
 
-        public bool IsTableColumn(string tableName, string columnName)
-        {
-            if (TableName == tableName && ColumnName == columnName)
-            {
-                return true;
-            }
-
-            return false;
-        }
+        public bool IsTableColumn(string tableName, string columnName) => TableName == tableName && ColumnName == columnName;
     }
 }

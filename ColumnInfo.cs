@@ -29,14 +29,7 @@ namespace WpfMSSQLtoSQLite
             TableName = ConvertFromDBValToObject(tableName)?.ToString();
             ColumnName = ConvertFromDBValToObject(columnName)?.ToString();
             DataType = ConvertFromDBValToObject(dataType)?.ToString();
-            
-            //if (int.TryParse(maxLength ?? "0", out int ml) == false)
-            //{
-            //    ml = 0;
-            //}
-
             MaxLength = (int)(ConvertFromDBValToObject(maxLength) ?? 0);
-
             ColumnDefault = ConvertFromDBValToObject(columnDefault)?.ToString();
             IsNullable = ConvertFromDBValToObject(isNullable)?.ToString();
             NumericPrecision = ConvertFromDBValToObject(numericPrecision)?.ToString();
@@ -54,6 +47,7 @@ namespace WpfMSSQLtoSQLite
                 return obj;
             }
         }
+
         public override bool Equals(object obj)
         {
             return obj is ColumnInfo other &&

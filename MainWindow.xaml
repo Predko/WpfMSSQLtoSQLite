@@ -28,6 +28,9 @@
                             IsEnabled="False" 
                             Margin="10 5 10 5" Padding="10 5 10 5">Копировать данные</Button>
                 </StackPanel>
+                <StackPanel>
+                    <CheckBox x:Name="ChbxIsLoremIpsum" Margin="10 5 10 5">Заменить названия на Lorem Ipsum, изменить реквизиты</CheckBox>
+                </StackPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" DockPanel.Dock="Bottom">
                 <Button Margin="10 5 10 5" Padding="10 5 10 5" 
