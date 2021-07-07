@@ -313,7 +313,7 @@ namespace WpfMSSQLtoSQLite
 
                         return res;
 
-                    case "city":
+                    case "City":
 
                         res = cities[rnd.Next(cities.Count - 1)];
 
@@ -321,12 +321,12 @@ namespace WpfMSSQLtoSQLite
 
                         return res;
 
-                    case "region":
+                    case "Region":
 
                         return "";
 
-                    case "account":
-                    case "account1":
+                    case "Account":
+                    case "Account1":
 
                         while (true)
                         {
@@ -346,8 +346,8 @@ namespace WpfMSSQLtoSQLite
 
                         return res;
 
-                    case "phoneNumber":
-                    case "fax":
+                    case "PhoneNumber":
+                    case "Fax":
 
                         while (true)
                         {
@@ -366,7 +366,7 @@ namespace WpfMSSQLtoSQLite
 
                         return res;
 
-                    case "mail":
+                    case "Mail":
 
                         while (true)
                         {
@@ -382,10 +382,6 @@ namespace WpfMSSQLtoSQLite
                         }
 
                         return res;
-
-                    case "Id":
-
-                        return data.ToString();
 
                     default:
 
