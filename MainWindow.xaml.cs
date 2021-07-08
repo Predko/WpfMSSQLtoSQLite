@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Data.SqlClient;
+using Microsoft.Win32;
 
 namespace WpfMSSQLtoSQLite
 {
@@ -98,6 +99,31 @@ namespace WpfMSSQLtoSQLite
             TbxConnectionStringSQLite.LostFocus += new(TbxDbName_LostFocus);
 
             EnableBtnLoadAndCreate();
+        }
+
+        private void TbxConnectionStringSQLite_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+            {
+                Filter = "sqlite|*.sqlite;*.db;*.sqlite3;*.db3|All files *.*|*.*",
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                string fname = saveFileDialog.FileName.Trim();
+
+                if (fname.EndsWith(".sqlite", StringComparison.OrdinalIgnoreCase) == false
+                    && fname.EndsWith(".db", StringComparison.OrdinalIgnoreCase) == false
+                    && fname.EndsWith(".sqlite3", StringComparison.OrdinalIgnoreCase) == false
+                    && fname.EndsWith(".db3", StringComparison.OrdinalIgnoreCase) == false)
+                {
+                    fname += ".sqlite";
+                }
+
+                TbxConnectionStringSQLite.Text = fname;
+
+                BtnLoadDb.IsEnabled = true;
+            }
         }
     }
 }

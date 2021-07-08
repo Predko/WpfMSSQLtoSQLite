@@ -10,9 +10,12 @@
         <DockPanel LastChildFill="True">
             <StackPanel DockPanel.Dock="Top">
                 <TextBlock Text="Имя базы данных MS SQL" Margin="10 10 10 5"/>
-                <TextBox x:Name="TbxConnectionStringMSSQL" Margin="10 0 10 10">Customers</TextBox>
+                <TextBox x:Name="TbxConnectionStringMSSQL" Margin="10 0 10 10"
+                         ToolTip="Имя базы данных MS SQL"></TextBox>
                 <TextBlock Text="Имя базы данных SQLite" Margin="10 5 10 5"/>
-                <TextBox x:Name="TbxConnectionStringSQLite" Margin="10 0 10 10">Customers</TextBox>
+                <TextBox x:Name="TbxConnectionStringSQLite" Margin="10 0 10 10"
+                         ToolTip="Путь и имя файла базы данных Sqlite. Двойной клик - для выбора файла"
+                         MouseDoubleClick="TbxConnectionStringSQLite_MouseDoubleClick"></TextBox>
                 <StackPanel Orientation="Horizontal">
                     <Button x:Name="BtnLoadDb" Click="Btn_ClickDatabaseInfo" 
                             IsDefault="True" 

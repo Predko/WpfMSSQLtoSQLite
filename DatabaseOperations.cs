@@ -33,7 +33,7 @@ namespace WpfMSSQLtoSQLite
 
         private readonly string connectionStringMSSql = @"Data Source=.\SQLEXPRESS;Initial Catalog={0};Integrated Security=True";
 
-        private readonly string connectionStringMSQLite = @"Data Source=d:\MyProgram\Web\Html\Birdwatching\assets\Data\{0}.sqlite";
+        private readonly string connectionStringMSQLite = @"Data Source={0}.sqlite";
 
 
         /// <summary>
@@ -48,14 +48,22 @@ namespace WpfMSSQLtoSQLite
 
             using (SqlConnection MSSQLconnection = new(string.Format(connectionStringMSSql, MSSqlDbName)))
             {
+                try
+                {
+                    MSSQLconnection.Open();
 
-                MSSQLconnection.Open();
+                    columnsTable = MSSQLconnection.GetSchema("Columns");
 
-                columnsTable = MSSQLconnection.GetSchema("Columns");
+                    allIndexColumnsSchemaTable = MSSQLconnection.GetSchema("IndexColumns");
 
-                allIndexColumnsSchemaTable = MSSQLconnection.GetSchema("IndexColumns");
+                    MSSQLconnection.Close();
+                }
+                catch(SqlException ex)
+                {
+                    MessageBox.Show(ex.Message);
 
-                MSSQLconnection.Close();
+                    return;
+                }
             }
 
             columnsInfo = (from info in columnsTable.AsEnumerable()
